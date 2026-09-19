@@ -518,7 +518,7 @@ function SciELO:registerZenOSHomeItem()
     end
     local ok = pcall(register, "scielo.search", function(ctx)
         return self:buildZenOSHomeItem(ctx)
-    end, { label = _("SciELO search"), size = "s" })
+    end, { label = _("Search on SciELO"), size = "s" })
     if ok then
         logger.dbg("SciELO: registered ZenOS home item")
     end
@@ -530,7 +530,7 @@ function SciELO:buildZenOSHomeItem(ctx)
     local border = Size.border.button
     local padding = Size.padding.button
     return Button:new{
-        text = _("SciELO"),
+        text = _("Search on SciELO"),
         text_font_size = 18,
         width = ctx.width,
         height = math.max(1, (ctx.height or 1) - 2 * (border + padding)),

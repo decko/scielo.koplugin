@@ -80,7 +80,7 @@ be bound to action buttons as well.
 
 The plugin also offers an optional tappable home tile through ZenOS's Home
 widget API. It is disabled by default; enable it under
-*Zen Settings > Home > Widgets > SciELO search*.
+*Zen Settings > Home > Widgets > Search on SciELO*.
 
 ## Project layout
 
