@@ -71,14 +71,27 @@ Settings:
 - The PDF is downloaded from `citation_pdf_url` (typically
   `...?format=pdf`) with LuaSocket/LuaSec and KOReader's socket timeouts.
 
+## ZenOS integration
+
+[ZenOS](https://github.com/xZenLabs/zen-os) detects the plugin as a launchable
+plugin menu, so it can be added to the Launcher, Controls, Navbar or Home book
+strip (Add > Plugin Menu > SciELO). The dispatcher action "SciELO search" can
+be bound to action buttons as well.
+
+The plugin also offers an optional tappable home tile through ZenOS's Home
+widget API. It is disabled by default; enable it under
+*Zen Settings > Home > Widgets > SciELO search*.
+
 ## Project layout
 
 ```
 scielo.koplugin/
-├── _meta.lua          # Plugin management name/description
-├── main.lua           # Plugin class: menu, settings, dialogs, download flow
+├── .github/workflows/release.yml   # Auto-release on every push to main
+├── _meta.lua                       # Plugin management name/description
+├── LICENSE                         # GPL-3.0
+├── main.lua                        # Plugin class: menu, settings, dialogs, download
 └── scielo/
-    └── client.lua     # HTTP client: Crossref search, redirects, metadata, PDF
+    └── client.lua                  # HTTP client: Crossref search, redirects, metadata, PDF
 ```
 
 ## Development
@@ -100,3 +113,14 @@ To test with the desktop emulator, symlink the directory into
 - Metadata comes from the article page; the JATS XML (`?format=xml`) is not used
   yet, so abstracts are not shown.
 - Browsing by journal/issue is not implemented.
+
+## Releases
+
+Every push to `main` triggers the release workflow, which bumps the patch
+version, packages the plugin as `scielo.koplugin-<tag>.zip` and publishes a
+GitHub release. If a GitHub release ZIP is available, ZenPM uses it to install
+the plugin.
+
+## License
+
+[GPL-3.0](LICENSE)

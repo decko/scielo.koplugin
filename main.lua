@@ -1,3 +1,4 @@
+local Button = require("ui/widget/button")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local Device = require("device")
@@ -7,6 +8,7 @@ local InputDialog = require("ui/widget/inputdialog")
 local LuaSettings = require("luasettings")
 local Menu = require("ui/widget/menu")
 local NetworkMgr = require("ui/network/manager")
+local Size = require("ui/size")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local ffiUtil = require("ffi/util")
@@ -41,6 +43,7 @@ function SciELO:init()
     self.client = Client
     self:onDispatcherRegisterActions()
     self.ui.menu:registerToMainMenu(self)
+    self:registerZenOSHomeItem()
 end
 
 function SciELO:onDispatcherRegisterActions()
@@ -504,6 +507,46 @@ end
 
 function SciELO:onSciELOSearch()
     self:showSearchDialog()
+    return true
+end
+
+function SciELO:registerZenOSHomeItem()
+    local register = rawget(_G, "__ZENOS_REGISTER_HOME_ITEM")
+        or rawget(_G, "__ZEN_UI_REGISTER_HOME_ITEM")
+    if type(register) ~= "function" then
+        return false
+    end
+    local ok = pcall(register, "scielo.search", function(ctx)
+        return self:buildZenOSHomeItem(ctx)
+    end, { label = _("SciELO search"), size = "s" })
+    if ok then
+        logger.dbg("SciELO: registered ZenOS home item")
+    end
+    return ok
+end
+
+function SciELO:buildZenOSHomeItem(ctx)
+    ctx = ctx or {}
+    local border = Size.border.button
+    local padding = Size.padding.button
+    return Button:new{
+        text = _("SciELO"),
+        text_font_size = 18,
+        width = ctx.width,
+        height = math.max(1, (ctx.height or 1) - 2 * (border + padding)),
+        callback = function()
+            self:showSearchDialog()
+        end,
+    }
+end
+
+function SciELO:onZenOSReady()
+    self:registerZenOSHomeItem()
+    return true
+end
+
+function SciELO:onZenUIReady()
+    self:registerZenOSHomeItem()
     return true
 end
 

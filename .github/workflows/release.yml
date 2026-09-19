@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute next version
+        id: version
+        run: |
+          set -euo pipefail
+          latest="$(gh release list --limit 1000 --json tagName --jq '.[].tagName' \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)"
+          latest="${latest:-v0.1.0}"
+          version="${latest#v}"
+          major="${version%%.*}"
+          minor_patch="${version#*.}"
+          minor="${minor_patch%%.*}"
+          patch="${minor_patch##*.}"
+          patch=$((patch + 1))
+          tag="v${major}.${minor}.${patch}"
+          while gh release view "$tag" >/dev/null 2>&1; do
+            patch=$((patch + 1))
+            tag="v${major}.${minor}.${patch}"
+          done
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Build plugin zip
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          rm -rf dist
+          mkdir -p dist/scielo.koplugin/scielo
+          cp main.lua _meta.lua LICENSE dist/scielo.koplugin/
+          cp scielo/client.lua dist/scielo.koplugin/scielo/
+          cd dist
+          zip -r "../scielo.koplugin-${TAG}.zip" scielo.koplugin
+          unzip -l "../scielo.koplugin-${TAG}.zip"
+
+      - name: Create release
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" "scielo.koplugin-${TAG}.zip" \
+            --title "$TAG" \
+            --generate-notes \
+            --target "$GITHUB_SHA"
